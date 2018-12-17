@@ -4,19 +4,20 @@ import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.config.IniSecurityManagerFactory;
+import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.Factory;
-import org.apache.shiro.mgt.SecurityManager;
+
 /**
  * 创建一个简单的shiro认证
  *
  */
-public class App 
+public class App2
 {
     public static void main( String[] args )
     {
         //构建SecurityFactory工厂(注意手动导入securityManager)
-        Factory<SecurityManager> factory = new IniSecurityManagerFactory("classpath:shiro.ini");
+        Factory<SecurityManager> factory = new IniSecurityManagerFactory("classpath:shiro2.ini");
         //创建securitManager实例
         SecurityManager manager = factory.getInstance();
         //将securityManager设置到运行环境中
