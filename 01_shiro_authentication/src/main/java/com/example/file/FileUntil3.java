@@ -6,10 +6,7 @@ import com.alibaba.excel.metadata.Table;
 import com.alibaba.excel.support.ExcelTypeEnum;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * @Description:
@@ -17,7 +14,7 @@ import java.util.Properties;
  * @Auther: zhangfx
  * @Date: 2018/12/18/ 11:43
  */
-public class FileUntil {
+public class FileUntil3 {
 
     //读取文件路径
     private static String readerFilePath = null;
@@ -29,10 +26,20 @@ public class FileUntil {
     private static int columnSum = 0;
     //每行数据的长度相加和
     private static int sum = 0;
-    //存放第一面数据
-    private static List<String> list1 = new ArrayList<>();
-    //存放第二面数据
-    private static List<String> list2 = new ArrayList<>();
+    //标识当前到第几面数据
+    private static String index = null;
+    //存放分组layer数量
+    public static Map<String,Integer> map = new HashMap<>();
+    //存放全部数据
+    public static List<List<String>> dataList = new ArrayList<>();
+    //存放一层数据
+    public static List<String> layerList = new ArrayList<>();
+    //存放第一层数据
+    public static List<String> list1 = new ArrayList<>();
+    //存放第二层数据
+    public static List<String> list2 = new ArrayList<>();
+    //存放第三层数据
+    public static List<String> list3 = new ArrayList<>();
     /**
      * DOC 读取信息
      * @throws FileNotFoundException
@@ -49,28 +56,28 @@ public class FileUntil {
         while ((line = bufferedReader.readLine()) != null) {
             //1.去掉左右空格
             String trim = line.trim();
-            //2.去掉不需要的行(比如 注释，标识)
-            if (trim.indexOf("Layer") != -1||trim.startsWith("#")||trim.length()<55) {
-                continue;
+            if (line.indexOf("Layer") != -1) {
+                trim = trim.substring(trim.length() - 1,trim.length());
+                Integer count = map.get(trim);
+                index = trim;
+                System.out.println(index);
+                map.put(trim,(count == null) ? 1 : count + 1);
             }
-            System.out.println(trim+" "+trim.length());
-            //3.计算数据长度相加和
-            sum+=trim.length();
-            //100170是指第一面三层数据的长度(包含每行数据的空格在内)
-            //3*90*188*2(空格)-1350(多算的空格)=100170
-            if (sum <= 100170) {
-                //4.第一面每行数据内间隔为单个空格,使用单个空格进行分割
-                String[] split = trim.split(" ");
-                System.out.println(split.length);
-                //5.转换为list列表存储
-                list1.addAll(new ArrayList<String>(Arrays.asList(split)));
-            } else {
-                //4.第二面每行数据内为不定空格,使用正则表达式进行分割
-                String[] split = trim.split("\\s+ ");
-                System.out.println(split.length);
-                //5.转换为list列表存储
-                list2.addAll(new ArrayList<String>(Arrays.asList(split)));
+            String[] split = trim.split("\\s+ ");
+            //只读取需要的数据
+            if (split.length == 8 || split.length == 10) {
+                sum+=split.length;
+                if (sum > (map.get(String.valueOf(index)) * 90 * 188)) {
+                    System.out.println((map.get(String.valueOf(index)) * 90 * 188));
+                    sum = 0;
+                    dataList.add(layerList);
+                    layerList = new ArrayList<>();
+                }
+                layerList.addAll(new ArrayList<String>(Arrays.asList(split)));
             }
+        }
+        if (!dataList.contains(layerList)) {
+            dataList.add(layerList);
         }
         bufferedReader.close();// 关闭输入流
     }
@@ -85,7 +92,7 @@ public class FileUntil {
         } else if (writerFilePath.endsWith(".txt")) {
             writeTxt();
         } else {
-            throw new Exception("输出文件格式错误:请以txt或xlsx结尾");
+            throw new Exception("输出文件格式错误:  请以txt或xlsx结尾");
         }
     }
 
@@ -107,7 +114,7 @@ public class FileUntil {
         //列号
         int columnNumber = 0;
         // 写入信息
-        for (int i = 0; i < list1.size(); i++) {
+        for (int i = 0; i < dataList.get(0).size(); i++) {
             columnNumber++;
             if (columnNumber > columnSum) {
                 columnNumber = 1;
@@ -117,7 +124,15 @@ public class FileUntil {
                 lineNumber = 1;
                 layerNumber++;
             }
-            bufferedWriter.write("层号:"+layerNumber+" 行号:"+lineNumber+" 列号"+columnNumber+"  "+list1.get(i)+"  "+list2.get(i));
+            StringBuffer sb = new StringBuffer();
+            sb.append("层号：").append(layerNumber).append(" 行号：").append(lineNumber).append(" 列号：").append(columnNumber).append("  ");
+            for (int j = 0; j < dataList.size() ; j++) {
+                if (dataList.get(j).size() <= i) {
+                    dataList.get(j).add(i,"0");
+               }
+                sb.append(dataList.get(j).get(i)).append("  ");
+            }
+            bufferedWriter.write(sb.toString());
             bufferedWriter.newLine();
         }
         bufferedWriter.flush();// 清空缓冲区
@@ -130,12 +145,12 @@ public class FileUntil {
     private static void getConfig() throws IOException {
         Properties properties = new Properties();
         // 使用ClassLoader加载properties配置文件生成对应的输入流
-        InputStream in = ClassLoader.getSystemResourceAsStream("config.properties");
+        InputStream in = ClassLoader.getSystemResourceAsStream("config3.properties");
         // 使用properties对象加载输入流
         properties.load(in);
         //获取key对应的value值
-        readerFilePath = properties.getProperty("readerFilePath");
         writerFilePath = properties.getProperty("writerFilePath");
+        readerFilePath = properties.getProperty("readerFilePath");
         lineSum = Integer.valueOf(properties.getProperty("lineSum","90"));
         columnSum =Integer.valueOf(properties.getProperty("columnSum", "188"));
         //关闭输入流
@@ -154,14 +169,6 @@ public class FileUntil {
         ExcelTypeEnum excelTypeEnum = ExcelTypeEnum.XLSX;
         Table table = new Table(0);
         List<List<String>> arrayLists = new ArrayList<>();
-        //设置标题头
-        List<String> headerList = new ArrayList<String>();
-        headerList.add("层号");
-        headerList.add("行号");
-        headerList.add("列号");
-        headerList.add("value1");
-        headerList.add("value2");
-        arrayLists.add(headerList);
         //层号
         int layerNumber = 1;
         //行号
@@ -169,7 +176,7 @@ public class FileUntil {
         //列号
         int columnNumber = 0;
         // 写入信息
-        for (int i = 0; i < list1.size(); i++) {
+        for (int i = 0; i < dataList.get(0).size(); i++) {
             columnNumber++;
             if (columnNumber > columnSum) {
                 columnNumber = 1;
@@ -183,8 +190,12 @@ public class FileUntil {
             lineList.add(String.valueOf(layerNumber));
             lineList.add(String.valueOf(lineNumber));
             lineList.add(String.valueOf(columnNumber));
-            lineList.add(list1.get(i));
-            lineList.add(list2.get(i));
+            for (int j = 0; j < dataList.size() ; j++) {
+                if (dataList.get(j).size() <= i) {
+                    dataList.get(j).add(i,"0");
+                }
+                lineList.add(dataList.get(j).get(i));
+            }
             arrayLists.add(lineList);
         }
         //这里指定不需要表头，因为String通常表头已被包含在data里
