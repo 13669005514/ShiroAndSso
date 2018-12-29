@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.dictionaryInfo.DictionaryInfoMapper">
+  <!--对象属性到字段的映射-->
+  <resultMap id="BaseResultMap" type="com.example.entiy.dictionaryInfo.DictionaryInfoResponse">
+    <id column="ID" jdbcType="DECIMAL" property="id" />
+    <result column="CODE" jdbcType="VARCHAR" property="code" />
+    <result column="NAME" jdbcType="VARCHAR" property="name" />
+    <result column="PARENT_CODE" jdbcType="VARCHAR" property="parentCode" />
+    <result column="INDEX" jdbcType="DECIMAL" property="index" />
+    <result column="COMMENT" jdbcType="VARCHAR" property="comment" />
+    <result column="DELETEFLAG" jdbcType="DECIMAL" property="deleteFlag" />
+  </resultMap>
+  <!--查询字段-->
+  <sql id="Base_Column_List">
+    ID, CODE, "NAME", PARENT_CODE, "INDEX", "COMMENT", DELETEFLAG
+  </sql>
+  <!--按主键id查找字典记录-->
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from DICTIONARY_INFO
+    where ID = #{id,jdbcType=DECIMAL}  AND DELETEFLAG = 0
+  </select>
+  <!--按主键id删除字典记录-->
+  <update id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    update  DICTIONARY_INFO set DELETEFLAG = 1
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  <!--插入一条字典记录-->
+  <insert id="insertSelective" keyColumn="ID" keyProperty="id" parameterType="com.example.entiy.dictionaryInfo.DictionaryInfo" useGeneratedKeys="true">
+    insert into DICTIONARY_INFO
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="code != null">
+        "CODE",
+      </if>
+      <if test="name != null">
+        "NAME",
+      </if>
+      <if test="parentCode != null">
+        PARENT_CODE,
+      </if>
+      <if test="index != null">
+        "INDEX",
+      </if>
+      <if test="comment != null">
+        "COMMENT",
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="code != null">
+        #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null">
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="parentCode != null">
+        #{parentCode,jdbcType=VARCHAR},
+      </if>
+      <if test="index != null">
+        #{index,jdbcType=DECIMAL},
+      </if>
+      <if test="comment != null">
+        #{comment,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <!--按主键id修改一条字典记录-->
+  <update id="updateByPrimaryKeySelective" parameterType="com.example.entiy.dictionaryInfo.DictionaryInfoResponse">
+    update DICTIONARY_INFO
+    <set>
+      <if test="name != null">
+        "NAME" = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="parentCode != null">
+        PARENT_CODE = #{parentCode,jdbcType=DECIMAL},
+      </if>
+      <if test="index != null">
+        "INDEX" = #{index,jdbcType=DECIMAL},
+      </if>
+      <if test="comment != null">
+        "COMMENT" = #{comment,jdbcType=VARCHAR},
+      </if>
+      <if test="deleteFlag != null">
+        DELETEFLAG = #{deleteFlag,jdbcType=DECIMAL},
+      </if>
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  <!--按父类parentCode迭代查找字典记录-->
+  <select id="selectByParentCode" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List" /> from DICTIONARY_INFO
+    where DELETEFLAG = 0
+    start with PARENT_CODE=#{parentCode,jdbcType=VARCHAR} connect by prior CODE = PARENT_CODE
+  </select>
+  <!--查找全部字典记录-->
+  <select id="selectAll" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from DICTIONARY_INFO
+    where DELETEFLAG = 0
+  </select>
+</mapper>

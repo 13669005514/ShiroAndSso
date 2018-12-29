@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.roleRelation.RoleRelationMapper">
+  <!--对象属性到字段的映射-->
+  <resultMap id="BaseResultMap" type="com.example.entiy.roleRelation.RoleRelationResponse">
+    <id column="ID" jdbcType="DECIMAL" property="id" />
+    <result column="ROLE_CODE" jdbcType="VARCHAR" property="roleCode" />
+    <result column="PARENT_ROLE_CODE" jdbcType="VARCHAR" property="parentRoleCode" />
+    <result column="INDEX" jdbcType="DECIMAL" property="index" />
+    <result column="COMMENT" jdbcType="VARCHAR" property="comment" />
+    <result column="DELETEFLAG" jdbcType="DECIMAL" property="deleteFlag" />
+  </resultMap>
+  <!--查询字段-->
+  <sql id="Base_Column_List">
+    ID, ROLE_CODE, PARENT_ROLE_CODE, "INDEX", "COMMENT", DELETEFLAG
+  </sql>
+  <!--按主键id查找权限关系表记录-->
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from ROLE_RELATION
+    where ID = #{id,jdbcType=DECIMAL} AND DELETEFLAG = 0
+  </select>
+  <!--按主键id删除权限关系表记录-->
+  <update id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    update  ROLE_RELATION SET DELETEFLAG = 1
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  <!--插入一条权限关系表记录-->
+  <insert id="insertSelective" parameterType="com.example.entiy.roleRelation.RoleRelation">
+    insert into ROLE_RELATION
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="roleCode != null">
+        ROLE_CODE,
+      </if>
+      <if test="parentRoleCode != null">
+        PARENT_ROLE_CODE,
+      </if>
+      <if test="index != null">
+        "INDEX",
+      </if>
+      <if test="comment != null">
+        "COMMENT",
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+
+      <if test="roleCode != null">
+        #{roleCode,jdbcType=VARCHAR},
+      </if>
+      <if test="parentRoleCode != null">
+        #{parentRoleCode,jdbcType=VARCHAR},
+      </if>
+      <if test="index != null">
+        #{index,jdbcType=DECIMAL},
+      </if>
+      <if test="comment != null">
+        #{comment,jdbcType=VARCHAR},
+      </if>
+
+    </trim>
+  </insert>
+  <!--按主键id修改一条权限关系表记录-->
+  <update id="updateByPrimaryKeySelective" parameterType="com.example.entiy.roleRelation.RoleRelationResponse">
+    update ROLE_RELATION
+    <set>
+      <if test="roleCode != null">
+        ROLE_CODE = #{roleCode,jdbcType=VARCHAR},
+      </if>
+      <if test="parentRoleCode != null">
+        PARENT_ROLE_CODE = #{parentRoleCode,jdbcType=VARCHAR},
+      </if>
+      <if test="index != null">
+        "INDEX" = #{index,jdbcType=DECIMAL},
+      </if>
+      <if test="comment != null">
+        "COMMENT" = #{comment,jdbcType=VARCHAR},
+      </if>
+      <if test="deleteFlag != null">
+        DELETEFLAG = #{deleteFlag,jdbcType=DECIMAL},
+      </if>
+    </set>
+    where ID = #{id,jdbcType=DECIMAL}
+  </update>
+  <!--按父类parentRoleCode迭代查找权限关系表记录-->
+  <select id="selectByParentRoleCode" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List" /> from ROLE_RELATION
+    where DELETEFLAG = 0
+    start with PARENT_ROLE_CODE=#{parentRoleCode,jdbcType=VARCHAR} connect by prior ROLE_CODE = PARENT_ROLE_CODE
+  </select>
+  <!--查找全部权限关系表记录-->
+  <select id="selectAll" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from ROLE_RELATION
+    where DELETEFLAG = 0
+  </select>
+
+</mapper>
