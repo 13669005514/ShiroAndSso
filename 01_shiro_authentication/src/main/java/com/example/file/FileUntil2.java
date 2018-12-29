@@ -45,7 +45,6 @@ public class FileUntil2 {
     public static void read() throws FileNotFoundException, IOException {
         //读取配置文件
         getConfig();
-
         File file = new File(readerFilePath);// 指定要读取的文件
         // 获得该文件的缓冲输入流
         BufferedReader bufferedReader = new BufferedReader(new FileReader(file));

@@ -69,7 +69,7 @@ public class FileUntil3 {
                 sum+=split.length;
                 if (sum > (map.get(String.valueOf(index)) * 90 * 188)) {
                     System.out.println((map.get(String.valueOf(index)) * 90 * 188));
-                    sum = 0;
+                    sum = split.length;
                     dataList.add(layerList);
                     layerList = new ArrayList<>();
                 }

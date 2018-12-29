@@ -12,17 +12,17 @@ public class Client3 {
 
     public static void main(String[] args) throws IOException {
         try {
+            FileUntil4 fileUntil4 = new FileUntil4();
             //读取文件
-            FileUntil4.read();
-            System.out.println(FileUntil4.map2);
-            //System.out.println(FileUntil3.dataList);
-            //System.out.println(FileUntil3.dataList);
-            System.out.println("");
+            fileUntil4 .read();
             //写入文件
-            //FileUntil3.write();
+            fileUntil4 .write();
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+
+
     }
 
 
